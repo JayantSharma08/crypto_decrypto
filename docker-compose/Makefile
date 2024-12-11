@@ -30,4 +30,4 @@ backfill-technical-indicators: build-technical-indicators-historical
 
 clean-backfill-kakfa-topics:
 	@echo "Removing all Kafka topics that contain the word historical"
-	
+	docker compose -f redpanda.yml exec redpanda rpk topic delete -r ".*historical.*"

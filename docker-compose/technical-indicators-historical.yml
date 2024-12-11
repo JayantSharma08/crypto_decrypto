@@ -17,7 +17,8 @@ services:
       - PAIRS=["BTC/USD", "BTC/EUR", "ETH/EUR", "ETH/USD", "SOL/USD", "SOL/EUR", "XRP/USD", "XRP/EUR"]
       - LAST_N_DAYS=30
       - DATA_SOURCE=historical
-
+    # restart: always
+    
   candles:
     build:
       context: ../services/candles
