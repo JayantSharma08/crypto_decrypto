@@ -36,6 +36,7 @@ def main(
             'news': value['title'],
             **llm.get_signal(value['title']),
             'model_name': llm.model_name,
+            'timestamp_ms': value['timestamp_ms'],
         }
     )
 
