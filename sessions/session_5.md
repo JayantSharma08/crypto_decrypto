@@ -1,4 +1,4 @@
-# Session 3
+# Session 5
 ### [👉 Watch the session recordings](https://www.realworldml.net/products/building-a-better-real-time-ml-system-together-cohort-3/categories/2156685698)
 
 ### [👉 Slides](https://www.realworldml.net/products/building-a-better-real-time-ml-system-together-cohort-3/categories/2156685698/posts/2183490649)
