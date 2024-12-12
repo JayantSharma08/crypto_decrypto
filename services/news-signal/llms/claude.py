@@ -40,6 +40,8 @@ class ClaudeNewsSignalExtractor(BaseNewsSignalExtractor):
             """
         )
 
+        self.model_name = model_name
+
     def get_signal(
         self,
         text: str,
@@ -79,6 +81,7 @@ if __name__ == '__main__':
         print(response)
 
     """
+    Example: Bitcoin ETF ads spotted on China’s Alipay payment app
     {
         'btc_signal': 1,
         'eth_signal': 0,
@@ -92,6 +95,7 @@ if __name__ == '__main__':
         position, hence a neutral signal."
     }
 
+    Example: U.S. Supreme Court Lets Nvidia’s Crypto Lawsuit Move Forward
     {
         'btc_signal': 0,
         'eth_signal': 0,

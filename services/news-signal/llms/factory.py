@@ -2,6 +2,7 @@ from typing import Literal
 
 from .base import BaseNewsSignalExtractor
 from .claude import ClaudeNewsSignalExtractor
+from .ollama import OllamaNewsSignalExtractor
 
 
 def get_llm(model_provider: Literal['anthropic', 'ollama']) -> BaseNewsSignalExtractor:
@@ -24,7 +25,14 @@ def get_llm(model_provider: Literal['anthropic', 'ollama']) -> BaseNewsSignalExt
             api_key=config.api_key,
         )
 
-    # elif model_provider == "ollama":
-    #     return OllamaNewsSignalExtractor()
+    elif model_provider == 'ollama':
+        from .config import OllamaConfig
+
+        config = OllamaConfig()
+
+        return OllamaNewsSignalExtractor(
+            model_name=config.model_name,
+        )
+
     else:
         raise ValueError(f'Unsupported model provider: {model_provider}')
