@@ -6,3 +6,5 @@
 - [Session 2](./sessions/session_2.md)
 - [Session 3](./sessions/session_3.md)
 - [Session 4](./sessions/session_4.md)
+- [Session 5](./sessions/session_5.md)
+- [Session 6](./sessions/session_6.md)
