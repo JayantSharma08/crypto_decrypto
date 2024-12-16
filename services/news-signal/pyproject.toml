@@ -13,4 +13,8 @@ dependencies = [
     "loguru>=0.7.3",
     "llama-index-llms-ollama>=0.5.0",
     "fire>=0.7.0",
+    "unsloth>=2024.12.4",
+    "datasets>=3.2.0",
+    "comet-ml>=3.47.5",
+    "setuptools>=75.6.0",
 ]
