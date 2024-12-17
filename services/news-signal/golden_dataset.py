@@ -1,5 +1,8 @@
 import json
+import random
 from typing import Literal
+
+import pandas as pd
 
 instruction = """
 You are an expert crypto financial analyst with deep knowledge of market dynamics and sentiment analysis.
@@ -21,7 +24,10 @@ Do not output data for a given coin if the news is not relevant to it.
 
 
 def generate_dataset(
-    model_provider: Literal['claude', 'ollama'], n: int, output_file: str
+    model_provider: Literal['claude', 'ollama'],
+    n: int,
+    input_file: str,
+    output_file: str,
 ):
     """
     Generate a dataset of (instruction, input, output) tuples to do
@@ -30,6 +36,7 @@ def generate_dataset(
     Args:
         model_provider: The model provider to use.
         n: The number of news stories to generate.
+        input_file: The file to read the news stories from.
         output_file: The file to write the dataset to.
 
     Returns:
@@ -37,14 +44,10 @@ def generate_dataset(
     """
 
     # load dataset
-    import pandas as pd
-
-    df = pd.read_csv('./data/cryptopanic_news.csv')
+    df = pd.read_csv(input_file)
     news = df['title'].tolist()
 
     # random sample of n news
-    import random
-
     news = random.sample(news, n)
 
     # llm
@@ -57,15 +60,12 @@ def generate_dataset(
     for news_item in tqdm(news):
         try:
             signals = llm.get_signal(news_item)
-
             output = {
                 'instruction': instruction,
                 'input': news_item,
                 'output': signals.model_dump_json(),
                 'teacher_model_name': llm.model_name,
             }
-
-            # breakpoint()
 
             # append to file
             with open(output_file, 'a') as f:
