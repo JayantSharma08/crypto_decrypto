@@ -1,12 +1,14 @@
 # Session 7
-### [👉 Watch the session recordings]()
+### [👉 Watch the session recordings](https://www.realworldml.net/products/building-a-better-real-time-ml-system-together-cohort-3/categories/2156714176)
 
-### [👉 Slides]()
+### [👉 Slides](https://www.realworldml.net/products/building-a-better-real-time-ml-system-together-cohort-3/categories/2156714176/posts/2183607860)
 
 
 ## Goals 🎯
 
 - [x] Change output format of our NewsSignalExtractor.
+- [x] Create instruction dataset for fine tuning
+- [x] Fine tune llama3.2:1b with Unsloth
 
 ## Challenges/Homework
 

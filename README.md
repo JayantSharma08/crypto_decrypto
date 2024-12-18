@@ -8,3 +8,5 @@
 - [Session 4](./sessions/session_4.md)
 - [Session 5](./sessions/session_5.md)
 - [Session 6](./sessions/session_6.md)
+- [Session 7](./sessions/session_7.md)
+- [Session 8](./sessions/session_8.md)
