@@ -47,8 +47,8 @@ class OllamaNewsSignalExtractor(BaseNewsSignalExtractor):
     def get_signal(
         self,
         text: str,
-        output_format: Literal['dict', 'NewsSignal'] = 'NewsSignal',
-    ) -> dict | NewsSignal:
+        output_format: Literal['list', 'NewsSignal'] = 'NewsSignal',
+    ) -> list[dict] | NewsSignal:
         """
         Get the news signal from the given `text`
 
