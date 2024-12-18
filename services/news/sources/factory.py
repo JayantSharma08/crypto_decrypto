@@ -11,6 +11,7 @@ def get_source(
     polling_interval_sec: Optional[int] = 10,
     url_rar_file: Optional[str] = None,
     path_to_csv_file: Optional[str] = None,
+    days_back: Optional[int] = 180,
 ) -> NewsDataSource:
     if data_source == 'live':
         # Set up the source to download news from the CryptoPanic API
@@ -35,7 +36,10 @@ def get_source(
         # https://github.com/soheilrahsaz/cryptoNewsDataset/raw/refs/heads/main/CryptoNewsDataset_csvOutput.rar
         # uncompress and wrap it as Quix Streams CSVSource
         # All this logic is implemented in a Custom Quix Streams Source
-        return HistoricalNewsDataSource(path_to_csv_file=path_to_csv_file)
+        return HistoricalNewsDataSource(
+            path_to_csv_file=path_to_csv_file,
+            days_back=days_back,
+        )
 
     else:
         raise ValueError(f'Invalid data source: {data_source}')

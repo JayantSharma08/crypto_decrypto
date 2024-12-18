@@ -50,6 +50,7 @@ if __name__ == '__main__':
         polling_interval_sec=config.polling_interval_sec,
         url_rar_file=config.historical_data_source_url_rar_file,
         path_to_csv_file=config.historical_data_source_csv_file,
+        days_back=config.historical_days_back,
     )
 
     # Run the streaming application

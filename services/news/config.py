@@ -16,6 +16,7 @@ class Config(BaseSettings):
     polling_interval_sec: Optional[int] = 10
     historical_data_source_url_rar_file: Optional[str] = None
     historical_data_source_csv_file: Optional[str] = None
+    historical_days_back: Optional[int] = 180
 
 
 config = Config()
