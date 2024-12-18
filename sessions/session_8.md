@@ -15,5 +15,13 @@
 
 - [ ] Start the training script
 
+## Questions
 
+### Carlo Casorzo
+Could you explain again how are we doing the left join in the feature view?
 
+What are the columns that we will match?
+
+Because the news and the TA will have different timestamps
+
+https://www.hopsworks.ai/dictionary/point-in-time-correct-joins
