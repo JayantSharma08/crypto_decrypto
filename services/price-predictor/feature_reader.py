@@ -1,7 +1,10 @@
+from datetime import datetime, timedelta
 from typing import Optional
 
 import hopsworks
-from hsfs import FeatureGroup, FeatureStore, FeatureView
+from hsfs.feature_group import FeatureGroup
+from hsfs.feature_store import FeatureStore
+from hsfs.feature_view import FeatureView
 from loguru import logger
 
 
@@ -63,7 +66,7 @@ class FeatureReader:
                 feature_view_version,
             )
 
-    def _get_feature_group(self, name: str, version: int) -> 'FeatureGroup':
+    def _get_feature_group(self, name: str, version: int) -> FeatureGroup:
         """
         Returns a feature group object given its name and version.
         """
@@ -145,7 +148,11 @@ class FeatureReader:
         """
         Returns a feature view object given its name and version.
         """
-        raise NotImplementedError('Feature view creation is not supported yet')
+        # raise NotImplementedError('Feature view creation is not supported yet')
+        return self._feature_store.get_feature_view(
+            name=feature_view_name,
+            version=feature_view_version,
+        )
 
     def _get_feature_store(self, project_name: str, api_key: str) -> FeatureStore:
         """
@@ -161,7 +168,14 @@ class FeatureReader:
         Use the self._feature_view to get the training data going back `days_back` days.
         """
         logger.info(f'Getting training data going back {days_back} days')
-        return self._feature_view.get_batch_data()
+        _features = self._feature_view.get_batch_data(
+            start_time=datetime.now() - timedelta(days=days_back),
+            end_time=datetime.now(),
+        )
+
+        # TODO: split these features into groups of `pairs` and then stack them
+        # horizontally
+        # On Monday
 
     def get_inference_data(self):
         pass
