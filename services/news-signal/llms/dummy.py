@@ -35,7 +35,7 @@ class DummyNewsSignalExtractor(BaseNewsSignalExtractor):
                 },
                 {
                     'coin': 'ETH',
-                    'signal': 0,
+                    'signal': -1,
                 },
             ]
         else:
