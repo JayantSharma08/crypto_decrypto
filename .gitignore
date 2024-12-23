@@ -214,3 +214,4 @@ anthropic.env
 **/cryptopanic_credentials.env
 **/anthropic_credentials.env
 *.rar
+**/comet_ml_credentials.env

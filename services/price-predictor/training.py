@@ -1,7 +1,10 @@
+import comet_ml
+import joblib
 import pandas as pd
-from dummy_model import DummyModel
 from feature_reader import FeatureReader
 from loguru import logger
+from models.dummy_model import DummyModel
+from models.xgboost_model import XGBoostModel
 from sklearn.metrics import mean_absolute_error
 
 
@@ -35,6 +38,9 @@ def train(
     prediction_seconds: int,
     llm_model_name_news_signals: str,
     days_back: int,
+    hyperparameter_tuning: bool,
+    comet_ml_api_key: str,
+    comet_ml_project_name: str,
 ):
     """
     Does the following:
@@ -49,6 +55,31 @@ def train(
 
     """
     logger.info('Hello from the ML model training job...')
+
+    # to log all parameters, metrics to our experiment tracking service
+    # and model artifact to the model registry
+    experiment = comet_ml.start(
+        api_key=comet_ml_api_key,
+        project_name=comet_ml_project_name,
+    )
+
+    experiment.log_parameters(
+        {
+            # super important to log these 2
+            # because we want our deployed model to use the EXACT SAME feature view
+            # as the one we used for training
+            'feature_view_name': feature_view_name,
+            'feature_view_version': feature_view_version,
+            'pair_to_predict': pair_to_predict,
+            'candle_seconds': candle_seconds,
+            'pairs_as_features': pairs_as_features,
+            'technical_indicators_as_features': technical_indicators_as_features,
+            'prediction_seconds': prediction_seconds,
+            'llm_model_name_news_signals': llm_model_name_news_signals,
+            'days_back': days_back,
+            'hyperparameter_tuning': hyperparameter_tuning,
+        }
+    )
 
     # 1. Read feature data from the Feature Store
     feature_reader = FeatureReader(
@@ -71,36 +102,84 @@ def train(
     train_df, test_df = train_test_split(features_and_target, test_size=0.2)
 
     # 3. Split into features and target
-    _X_train = train_df.drop(columns=['target'])
-    _y_train = train_df['target']
+    X_train = train_df.drop(columns=['target'])
+    y_train = train_df['target']
     X_test = test_df.drop(columns=['target'])
     y_test = test_df['target']
+
+    experiment.log_parameters(
+        {
+            'X_train': X_train.shape,
+            'y_train': y_train.shape,
+            'X_test': X_test.shape,
+            'y_test': y_test.shape,
+        }
+    )
 
     # 3. Evaluate quick baseline models
 
     # Dummy model based on current close price
+    # on the test set
     y_test_pred = DummyModel(from_feature='close').predict(X_test)
     mae_dummy_model = mean_absolute_error(y_test, y_test_pred)
     logger.info(f'MAE of dummy model based on close price: {mae_dummy_model}')
+    experiment.log_metric('mae_dummy_model', mae_dummy_model)
+    # on the training set
+    y_train_pred = DummyModel(from_feature='close').predict(X_train)
+    mae_dummy_model_train = mean_absolute_error(y_train, y_train_pred)
+    logger.info(
+        f'MAE of dummy model based on close price on training set: {mae_dummy_model_train}'
+    )
+    experiment.log_metric('mae_train_dummy_model', mae_dummy_model_train)
 
     # Dummy model based on sma_7
     if 'sma_7' in technical_indicators_as_features:
         y_test_pred = DummyModel(from_feature='sma_7').predict(X_test)
         mae_dummy_model = mean_absolute_error(y_test, y_test_pred)
         logger.info(f'MAE of dummy model based on sma_7: {mae_dummy_model}')
+        experiment.log_metric('mae_dummy_model_sma_7', mae_dummy_model)
 
     # Dummy model based on sma_14
     if 'sma_14' in technical_indicators_as_features:
         y_test_pred = DummyModel(from_feature='sma_14').predict(X_test)
         mae_dummy_model = mean_absolute_error(y_test, y_test_pred)
         logger.info(f'MAE of dummy model based on sma_14: {mae_dummy_model}')
+        experiment.log_metric('mae_dummy_model_sma_14', mae_dummy_model)
 
     # 4. Fit an ML model on the training set
-    # TODO
+    model = XGBoostModel()
+    model.fit(X_train, y_train, hyperparameter_tuning=hyperparameter_tuning)
+
+    # 5. Evaluate the model on the testing set
+    y_test_pred = model.predict(X_test)
+    mae_xgboost_model = mean_absolute_error(y_test, y_test_pred)
+    logger.info(f'MAE of XGBoost model: {mae_xgboost_model}')
+    experiment.log_metric('mae', mae_xgboost_model)
+
+    # To check overfitting we log the model error on the training set
+    y_train_pred = model.predict(X_train)
+    mae_xgboost_model_train = mean_absolute_error(y_train, y_train_pred)
+    logger.info(f'MAE of XGBoost model on training set: {mae_xgboost_model_train}')
+    experiment.log_metric('mae_train', mae_xgboost_model_train)
+
+    # 6. Save the model artifact to the experiment
+    # Save the model to local filepath
+    model_filepath = 'xgboost_model.joblib'
+    joblib.dump(model.get_model_object(), model_filepath)
+
+    # Log the model to Comet
+    experiment.log_model(
+        name='xgboost_model',
+        file_or_folder=model_filepath,
+    )
 
 
 if __name__ == '__main__':
-    from config import hopsworks_credentials, training_config
+    from config import (
+        comet_ml_credentials,
+        hopsworks_credentials,
+        training_config,
+    )
 
     train(
         hopsworks_project_name=hopsworks_credentials.project_name,
@@ -114,4 +193,7 @@ if __name__ == '__main__':
         prediction_seconds=training_config.prediction_seconds,
         llm_model_name_news_signals=training_config.llm_model_name_news_signals,
         days_back=training_config.days_back,
+        hyperparameter_tuning=training_config.hyperparameter_tuning,
+        comet_ml_api_key=comet_ml_credentials.api_key,
+        comet_ml_project_name=comet_ml_credentials.project_name,
     )

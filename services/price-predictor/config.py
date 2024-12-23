@@ -24,6 +24,9 @@ class TrainingConfig(BaseSettings):
     llm_model_name_news_signals: str = Field(
         description='The name of the LLM model to use for the news signals'
     )
+    hyperparameter_tuning: bool = Field(
+        description='Whether to perform hyperparameter tuning'
+    )
 
 
 training_config = TrainingConfig()
@@ -35,4 +38,11 @@ class HopsworksCredentials(BaseSettings):
     project_name: str
 
 
+class CometMlCredentials(BaseSettings):
+    model_config = SettingsConfigDict(env_file='comet_ml_credentials.env')
+    api_key: str
+    project_name: str
+
+
 hopsworks_credentials = HopsworksCredentials()
+comet_ml_credentials = CometMlCredentials()

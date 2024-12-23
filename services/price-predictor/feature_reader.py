@@ -218,6 +218,9 @@ class FeatureReader:
 
         Returns:
             The features and possibly targets.
+
+        TODO: Join using the `window_end_ms` columns but keep the original `timestamp_ms`
+        column.
         """
         # append self.pair_to_predict to the list of pairs
         if self.pair_to_predict != self.pairs_as_features[0]:
@@ -285,6 +288,13 @@ class FeatureReader:
         # rename the window_end_ms column to timestamp_ms and sort by it
         df_all.rename(columns={'window_end_ms': 'timestamp_ms'}, inplace=True)
         df_all.sort_values(by='timestamp_ms', inplace=True)
+
+        # drop the pair_{pair} columns
+        # These are categorical features and we don't need for the model
+        df_all.drop(
+            columns=[col for col in df_all.columns if col.startswith('pair')],
+            inplace=True,
+        )
 
         return df_all
 
