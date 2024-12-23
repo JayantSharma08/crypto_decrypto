@@ -15,6 +15,9 @@ class TrainingConfig(BaseSettings):
     pairs_as_features: list[str] = Field(
         description='The pairs to use for the features'
     )
+    technical_indicators_as_features: list[str] = Field(
+        description='The technical indicators to use for from the technical_indicators feature group'
+    )
     days_back: int = Field(
         description='The number of days to consider for the historical data'
     )
