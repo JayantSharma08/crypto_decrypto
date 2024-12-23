@@ -282,6 +282,10 @@ class FeatureReader:
             # rename the close_target column to target
             df_all.rename(columns={'close_target': 'target'}, inplace=True)
 
+        # rename the window_end_ms column to timestamp_ms and sort by it
+        df_all.rename(columns={'window_end_ms': 'timestamp_ms'}, inplace=True)
+        df_all.sort_values(by='timestamp_ms', inplace=True)
+
         return df_all
 
     def get_inference_data(self):

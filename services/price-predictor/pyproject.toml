@@ -8,4 +8,5 @@ dependencies = [
     "hopsworks[python]>=4.1.4",
     "loguru>=0.7.3",
     "pydantic-settings>=2.7.0",
+    "scikit-learn>=1.6.0",
 ]
