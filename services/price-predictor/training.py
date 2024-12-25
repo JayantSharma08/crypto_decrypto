@@ -41,6 +41,8 @@ def train(
     hyperparameter_tuning: bool,
     comet_ml_api_key: str,
     comet_ml_project_name: str,
+    hyperparameter_tuning_search_trials: int,
+    hyperparameter_tuning_n_splits: int,
 ):
     """
     Does the following:
@@ -148,7 +150,12 @@ def train(
 
     # 4. Fit an ML model on the training set
     model = XGBoostModel()
-    model.fit(X_train, y_train, hyperparameter_tuning=hyperparameter_tuning)
+    model.fit(
+        X_train,
+        y_train,
+        n_search_trials=hyperparameter_tuning_search_trials,
+        n_splits=hyperparameter_tuning_n_splits,
+    )
 
     # 5. Evaluate the model on the testing set
     y_test_pred = model.predict(X_test)
@@ -196,4 +203,6 @@ if __name__ == '__main__':
         hyperparameter_tuning=training_config.hyperparameter_tuning,
         comet_ml_api_key=comet_ml_credentials.api_key,
         comet_ml_project_name=comet_ml_credentials.project_name,
+        hyperparameter_tuning_search_trials=training_config.hyperparameter_tuning_search_trials,
+        hyperparameter_tuning_n_splits=training_config.hyperparameter_tuning_n_splits,
     )

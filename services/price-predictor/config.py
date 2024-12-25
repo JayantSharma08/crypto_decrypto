@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -5,8 +7,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class TrainingConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file='training.settings.env')
 
+    # feature view to read data form both at training time and prediction time
     feature_view_name: str = Field(description='The name of the feature view')
     feature_view_version: int = Field(description='The version of the feature view')
+
     pair_to_predict: str = Field(description='The pair to train the model on')
     candle_seconds: int = Field(description='The number of seconds per candle')
     prediction_seconds: int = Field(
@@ -24,8 +28,15 @@ class TrainingConfig(BaseSettings):
     llm_model_name_news_signals: str = Field(
         description='The name of the LLM model to use for the news signals'
     )
-    hyperparameter_tuning: bool = Field(
-        description='Whether to perform hyperparameter tuning'
+
+    # hyperparameter tuning
+    hyperparameter_tuning_search_trials: Optional[int] = Field(
+        default=0,
+        description='The number of trials to perform for hyperparameter tuning',
+    )
+    hyperparameter_tuning_n_splits: Optional[int] = Field(
+        default=3,
+        description='The number of splits to perform for hyperparameter tuning',
     )
 
 
