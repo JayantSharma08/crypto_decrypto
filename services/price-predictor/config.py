@@ -49,6 +49,33 @@ class TrainingConfig(BaseSettings):
 training_config = TrainingConfig()
 
 
+class InferenceConfig(BaseSettings):
+    """
+    Configuration for the inference job
+
+    These are the parameters that are used to load the model from the model registry
+    and to generate the predictions
+
+    Observe how most of the parameters from the trianing job are not here. Instead,
+    they are loaded from the model registry. More precisely, from the experiment run
+    that generated the model artifact we load from the registry.
+    """
+
+    model_config = SettingsConfigDict(env_file='inference.settings.env')
+
+    pair_to_predict: str = Field(description='The pair to train the model on')
+    candle_seconds: int = Field(description='The number of seconds per candle')
+    prediction_seconds: int = Field(
+        description='The number of seconds into the future to predict'
+    )
+    model_status: Literal['Development', 'Staging', 'Production'] = Field(
+        description='The status of the model in the model registry that we want to use for inference'
+    )
+
+
+inference_config = InferenceConfig()
+
+
 class HopsworksCredentials(BaseSettings):
     model_config = SettingsConfigDict(env_file='hopsworks_credentials.env')
     api_key: str
@@ -59,6 +86,7 @@ class CometMlCredentials(BaseSettings):
     model_config = SettingsConfigDict(env_file='comet_ml_credentials.env')
     api_key: str
     project_name: str
+    workspace: str
 
 
 hopsworks_credentials = HopsworksCredentials()

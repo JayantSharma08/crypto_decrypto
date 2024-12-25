@@ -5,18 +5,8 @@ from feature_reader import FeatureReader
 from loguru import logger
 from models.dummy_model import DummyModel
 from models.xgboost_model import XGBoostModel
+from names import get_model_name
 from sklearn.metrics import mean_absolute_error
-
-
-def get_model_name(
-    pair_to_predict: str,
-    candle_seconds: int,
-    prediction_seconds: int,
-) -> str:
-    """
-    Returns the name of the model to save to the model registry
-    """
-    return f'price_predictor_pair_{pair_to_predict.replace("/", "_")}_candle_seconds_{candle_seconds}_prediction_seconds_{prediction_seconds}'
 
 
 def train_test_split(

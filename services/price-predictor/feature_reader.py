@@ -298,8 +298,52 @@ class FeatureReader:
 
         return df_all
 
-    def get_inference_data(self):
-        pass
+    def get_inference_features(self):
+        """
+        Get the latest features from the ONLINE feature store.
+        """
+        # get raw features from the Feature Store
+        logger.info('Getting latest features from the online feature store')
+        keys_to_read = self._get_online_store_keys()
+        logger.info(f'Keys to read: {keys_to_read}')
+        raw_features = self._feature_view.get_feature_vectors(entry=keys_to_read)
+
+        breakpoint()
+
+        # horizontally stack the features for each pair
+        # we want the outpu to be a daframe with (features, target)
+        features = self._preprocess_raw_features_into_features_and_target(
+            raw_features,
+            add_target_column=False,
+        )
+
+        return features
+
+    def _get_online_store_keys(self) -> list[dict]:
+        """
+        Get the keys we need to get features from the online store.
+
+        Serving keys:
+        - pair
+        - candle_seconds
+        - news_signals_coin -> TODO: remove this as a serving key. For that, update the query that behind this feature view.
+
+        Returns:
+            A list of dictionaries with the keys we need to get features from the online store.
+        """
+        keys = []
+        for pair in self.pairs_as_features:
+            for candle_seconds in [self.candle_seconds]:
+                keys.append(
+                    {
+                        'pair': pair,
+                        'candle_seconds': candle_seconds,
+                        'news_signals_coin': pair.split('/')[
+                            0
+                        ],  # TODO: remove this hack once the query is updated
+                    }
+                )
+        return keys
 
 
 if __name__ == '__main__':
@@ -309,7 +353,7 @@ if __name__ == '__main__':
         hopsworks_project_name=hopsworks_credentials.project_name,
         hopsworks_api_key=hopsworks_credentials.api_key,
         feature_view_name='price_predictor',
-        feature_view_version=1,
+        feature_view_version=2,
         pair_to_predict='BTC/USD',
         candle_seconds=60,
         pairs_as_features=['BTC/USD', 'ETH/USD', 'XRP/USD'],
@@ -348,5 +392,8 @@ if __name__ == '__main__':
         # news_signals_feature_group_version=2,
     )
 
-    training_data = feature_reader.get_training_data(days_back=90)
-    print(training_data)
+    # training_data = feature_reader.get_training_data(days_back=90)
+    # print(training_data)
+
+    latest_features = feature_reader.get_inference_features()
+    print(latest_features)

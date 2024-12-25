@@ -4,6 +4,14 @@
 ### [👉 Slides]()
 
 ## Goals 🎯
+- [x] Hyperparameter tuning
+- [x] Register model to model registry
+- [ ] Prediction generator service
+    - [x] Quix Streams app skeleton
+    - [x] Load model artifact and metadata from CometML
+    - [ ] Implement .predict() method to generate predictions.
+    - [ ] Add custom Quix Streams sink to save predictions to Elastic Search
+        - [ ] Spin up Elastic Search locally with docker compose. 
 
 ## Questions
 
@@ -21,3 +29,12 @@ https://en.wikipedia.org/wiki/Composition_over_inheritance
 
 ### Jayant Sharma
 so for each trial, the objective will be calculated for all the n_splits times, right? Cant we use a holdout validation (normal validation) data instead of cross validation?
+
+### Carlo Casorzo
+why did you pick elastic over any other persistance engine?
+
+No strong reasons. We just need a place where can save the predictions, and retrieve them fast for
+-> serving purposes.
+-> monitoring purposes.
+
+If we use Elastic Search we can easily generate real time dashboards on top of our data with Kibana.
