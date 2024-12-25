@@ -10,3 +10,5 @@
 - [Session 6](./sessions/session_6.md)
 - [Session 7](./sessions/session_7.md)
 - [Session 8](./sessions/session_8.md)
+- [Session 9](./sessions/session_9.md)
+- [Session 10](./sessions/session_10.md)

@@ -8,6 +8,17 @@ from models.xgboost_model import XGBoostModel
 from sklearn.metrics import mean_absolute_error
 
 
+def get_model_name(
+    pair_to_predict: str,
+    candle_seconds: int,
+    prediction_seconds: int,
+) -> str:
+    """
+    Returns the name of the model to save to the model registry
+    """
+    return f'price_predictor_pair_{pair_to_predict.replace("/", "_")}_candle_seconds_{candle_seconds}_prediction_seconds_{prediction_seconds}'
+
+
 def train_test_split(
     data: pd.DataFrame,
     test_size: float = 0.2,
@@ -38,13 +49,14 @@ def train(
     prediction_seconds: int,
     llm_model_name_news_signals: str,
     days_back: int,
-    hyperparameter_tuning: bool,
     comet_ml_api_key: str,
     comet_ml_project_name: str,
     hyperparameter_tuning_search_trials: int,
     hyperparameter_tuning_n_splits: int,
+    model_status: str,
 ):
     """
+
     Does the following:
     1. Reads feature data from the Feature Store
     2. Splits the data into training and testing sets
@@ -54,7 +66,25 @@ def train(
 
     Everything is instrumented with CometML.
 
+    The model is saved to the model registry with the tag `model_tag`.
 
+    Args:
+        hopsworks_project_name: The name of the Hopsworks project
+        hopsworks_api_key: The API key for the Hopsworks project
+        feature_view_name: The name of the feature view to read data from
+        feature_view_version: The version of the feature view to read data from
+        pair_to_predict: The pair to train the model on
+        candle_seconds: The number of seconds per candle
+        pairs_as_features: The pairs to use for the features
+        technical_indicators_as_features: The technical indicators to use for from the technical_indicators feature group
+        prediction_seconds: The number of seconds into the future to predict
+        llm_model_name_news_signals: The name of the LLM model to use for the news signals
+        days_back: The number of days to consider for the historical data
+        comet_ml_api_key: The API key for the CometML project
+        comet_ml_project_name: The name of the CometML project
+        hyperparameter_tuning_search_trials: The number of trials to perform for hyperparameter tuning
+        hyperparameter_tuning_n_splits: The number of splits to perform for hyperparameter tuning
+        model_status: The status of the model in the model registry
     """
     logger.info('Hello from the ML model training job...')
 
@@ -79,7 +109,9 @@ def train(
             'prediction_seconds': prediction_seconds,
             'llm_model_name_news_signals': llm_model_name_news_signals,
             'days_back': days_back,
-            'hyperparameter_tuning': hyperparameter_tuning,
+            'hyperparameter_tuning_search_trials': hyperparameter_tuning_search_trials,
+            'hyperparameter_tuning_n_splits': hyperparameter_tuning_n_splits,
+            'model_status': model_status,
         }
     )
 
@@ -171,14 +203,30 @@ def train(
 
     # 6. Save the model artifact to the experiment
     # Save the model to local filepath
-    model_filepath = 'xgboost_model.joblib'
+    model_name = get_model_name(pair_to_predict, candle_seconds, prediction_seconds)
+    model_filepath = f'{model_name}.joblib'
     joblib.dump(model.get_model_object(), model_filepath)
 
     # Log the model to Comet
     experiment.log_model(
-        name='xgboost_model',
+        name=model_name,
         file_or_folder=model_filepath,
     )
+
+    # if mae_xgboost_model < mae_dummy_model:
+    # TODO: remove this condition once you are able to get a better model
+    # Ideally, you want to push a model that is better than the dummy model
+    if True:
+        # This means the model is better than the dummy model
+        # so we register it
+        logger.info(f'Registering model {model_name} with status {model_status}')
+        registered_model = experiment.register_model(
+            model_name=model_name,
+            status=model_status,
+        )
+        logger.info(f'Registered model {registered_model}')
+
+    logger.info('Training job done!')
 
 
 if __name__ == '__main__':
@@ -200,9 +248,9 @@ if __name__ == '__main__':
         prediction_seconds=training_config.prediction_seconds,
         llm_model_name_news_signals=training_config.llm_model_name_news_signals,
         days_back=training_config.days_back,
-        hyperparameter_tuning=training_config.hyperparameter_tuning,
         comet_ml_api_key=comet_ml_credentials.api_key,
         comet_ml_project_name=comet_ml_credentials.project_name,
         hyperparameter_tuning_search_trials=training_config.hyperparameter_tuning_search_trials,
         hyperparameter_tuning_n_splits=training_config.hyperparameter_tuning_n_splits,
+        model_status=training_config.model_status,
     )
