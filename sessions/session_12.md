@@ -17,5 +17,7 @@
     - [x] Boilerplate server with actix-web
     - [ ] /predict endpoint that gets predictions from ES and serves them to the client app.
 
+- [ ] Add automatic linting and formatting with clippy and rust fmt with precommit hooks.
+
 ## Questions
 
