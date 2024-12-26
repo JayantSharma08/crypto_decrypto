@@ -9,6 +9,7 @@
     - [x] Load latest features from the online feature store
     - [x] Implement .predict() method to generate predictions.
     - [ ] Add custom Quix Streams sink to save predictions to Elastic Search
-        - [ ] Spin up Elastic Search locally with docker compose. 
+        - [x] Spin up Elastic Search locally with docker compose. 
+        - [ ] Save predictions from our inference.py to Elastisearch
 
 ## Questions
