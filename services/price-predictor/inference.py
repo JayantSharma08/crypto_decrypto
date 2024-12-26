@@ -1,5 +1,4 @@
-from typing import Literal
-
+from loguru import logger
 from price_predictor import PricePredictor
 from quixstreams import Application
 
@@ -9,11 +8,10 @@ def run(
     kafka_broker_address: str,
     kafka_input_topic: str,
     kafka_consumer_group: str,
-    # information about the model to use for inference
-    pair_to_predict: str,
+    # filter only on candles with the given frequency
     candle_seconds: int,
-    prediction_seconds: int,
-    model_status: Literal['Development', 'Staging', 'Production'],
+    # encapsulate the inference logic in its .predict() method
+    price_predictor: PricePredictor,
     # where to save the predictions
     elastic_search_sink,
 ):
@@ -38,19 +36,10 @@ def run(
     # Quix Streams application to handles all low-level communication with Kafka
     app = Application(
         broker_address=kafka_broker_address,
-        consumer_config=kafka_consumer_group,
+        consumer_group=kafka_consumer_group,
     )
 
     input_topic = app.topic(name=kafka_input_topic, value_deserializer='json')
-
-    # Load the model from the model registry and the necessary metadata at initialization
-    # It exposes a `predict` method that can be used to generate predictions
-    price_predictor = PricePredictor(
-        pair_to_predict=pair_to_predict,
-        candle_seconds=candle_seconds,
-        prediction_seconds=prediction_seconds,
-        model_status=model_status,
-    )
 
     # Streaming Dataframe to define the business logic, aka the transformations from
     # input data to output data
@@ -60,24 +49,46 @@ def run(
     sdf = sdf[sdf['candle_seconds'] == candle_seconds]
 
     # Generate a new prediction
-    sdf = sdf.apply(lambda _: price_predictor.predict())
+    sdf = sdf.apply(lambda _: price_predictor.predict().to_dict())
+
+    # logging the predictions
+    sdf = sdf.update(lambda x: logger.info(x))
 
     # Save the predictions to Elastic Search sink
-    sdf.sink(elastic_search_sink)
+    # sdf.sink(elastic_search_sink)
 
-    app.run()
+    app.run(sdf)
 
 
 if __name__ == '__main__':
-    from config import inference_config as config
+    from config import (
+        comet_ml_credentials as comet_config,
+    )
+    from config import (
+        hopsworks_credentials as hopsworks_config,
+    )
+    from config import (
+        inference_config as config,
+    )
+
+    # Load the model from the model registry and the necessary metadata at initialization
+    # It exposes a `predict` method that can be used to generate predictions
+    # We initialize here so that the run() methods does not need to worry about credentials
+    # and other low-level details about our PricePredictor class.
+    price_predictor = PricePredictor(
+        pair_to_predict=config.pair_to_predict,
+        candle_seconds=config.candle_seconds,
+        prediction_seconds=config.prediction_seconds,
+        model_status=config.model_status,
+        comet_config=comet_config,
+        hopsworks_config=hopsworks_config,
+    )
 
     run(
         kafka_broker_address=config.kafka_broker_address,
         kafka_input_topic=config.kafka_input_topic,
         kafka_consumer_group=config.kafka_consumer_group,
-        pair_to_predict=config.pair_to_predict,
         candle_seconds=config.candle_seconds,
-        prediction_seconds=config.prediction_seconds,
-        model_status=config.model_status,
+        price_predictor=price_predictor,
         elastic_search_sink=None,
     )

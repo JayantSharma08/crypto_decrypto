@@ -1,6 +1,5 @@
 import json
 import time
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Literal, Tuple
 
@@ -18,27 +17,12 @@ from loguru import logger
 # - etc...
 from models.xgboost_model import XGBRegressor
 from names import get_model_name
+from pydantic import BaseModel
 
 Model = Tuple[XGBRegressor]
 
-"""
-pair=self.pair_to_predict,
-candle_seconds=self.candle_seconds,
-prediction_seconds=self.prediction_seconds,
-prediction=prediction,
 
-# the timestamp when we make the prediction
-timestamp_ms=timestamp_ms,
-timestamp_iso=timestamp_iso,
-
-# the timestamp when we want to predict
-predicted_timestamp_ms=predicted_timestamp_ms,
-predicted_timestamp_iso=predicted_timestamp_iso,
-"""
-
-
-@dataclass
-class PredictionOutput:
+class PredictionOutput(BaseModel):
     pair: str
     candle_seconds: int
     prediction_seconds: int
@@ -51,6 +35,9 @@ class PredictionOutput:
     # the timestamp for which we want to predict the predicted price is `prediction`
     predicted_timestamp_ms: int
     predicted_timestamp_iso: str
+
+    def to_dict(self) -> dict:
+        return self.model_dump()
 
 
 class PricePredictor:
