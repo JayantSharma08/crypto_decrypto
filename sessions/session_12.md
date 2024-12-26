@@ -14,6 +14,8 @@
         - [x] Dockerize both the training and the inference.
 
 - [ ] REST API in Rust
-    - [ ] Boilerplate server with actix-web
+    - [x] Boilerplate server with actix-web
     - [ ] /predict endpoint that gets predictions from ES and serves them to the client app.
+
 ## Questions
+
