@@ -1,7 +1,11 @@
+import json
+import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Literal, Tuple
 
 import joblib  # Other options to serialzie/deserialize model objects to disk are
+import pandas as pd
 from comet_ml.api import API
 from config import CometMlCredentials as CometConfig
 from config import HopsworksCredentials as HopsworksConfig
@@ -17,16 +21,36 @@ from names import get_model_name
 
 Model = Tuple[XGBRegressor]
 
+"""
+pair=self.pair_to_predict,
+candle_seconds=self.candle_seconds,
+prediction_seconds=self.prediction_seconds,
+prediction=prediction,
+
+# the timestamp when we make the prediction
+timestamp_ms=timestamp_ms,
+timestamp_iso=timestamp_iso,
+
+# the timestamp when we want to predict
+predicted_timestamp_ms=predicted_timestamp_ms,
+predicted_timestamp_iso=predicted_timestamp_iso,
+"""
+
 
 @dataclass
 class PredictionOutput:
     pair: str
     candle_seconds: int
     prediction_seconds: int
-
     prediction: float
+
+    # the timestamp when we make the prediction
     timestamp_ms: int
     timestamp_iso: str
+
+    # the timestamp for which we want to predict the predicted price is `prediction`
+    predicted_timestamp_ms: int
+    predicted_timestamp_iso: str
 
 
 class PricePredictor:
@@ -120,8 +144,36 @@ class PricePredictor:
         - Make the prediction using the `self.model` and these features
         - Return the prediction
         """
-        # _features = self.feature_reader.get_latest_features()
-        pass
+        # get the latest features from the feature store
+        features: pd.DataFrame = self.feature_reader.get_inference_features()
+
+        # make the prediction
+        prediction: float = self.model.predict(features)[0]
+
+        # build the output
+        timestamp_ms = int(time.time() * 1000)
+        predicted_timestamp_ms = timestamp_ms + self.prediction_seconds * 1000
+
+        # transform unix milliseconds to iso format
+        timestamp_iso = datetime.fromtimestamp(
+            timestamp_ms / 1000, tz=timezone.utc
+        ).isoformat()
+        predicted_timestamp_iso = datetime.fromtimestamp(
+            predicted_timestamp_ms / 1000, tz=timezone.utc
+        ).isoformat()
+
+        return PredictionOutput(
+            pair=self.pair_to_predict,
+            candle_seconds=self.candle_seconds,
+            prediction_seconds=self.prediction_seconds,
+            prediction=prediction,
+            # the timestamp when we make the prediction
+            timestamp_ms=timestamp_ms,
+            timestamp_iso=timestamp_iso,
+            # the timestamp when we want to predict
+            predicted_timestamp_ms=predicted_timestamp_ms,
+            predicted_timestamp_iso=predicted_timestamp_iso,
+        )
 
     def _get_model_from_model_registry(
         self,
@@ -207,14 +259,18 @@ class PricePredictor:
         )
 
         # pairs_as_features
-        pairs_as_features = experiment.get_parameters_summary('pairs_as_features')[
+        pairs_as_features: str = experiment.get_parameters_summary('pairs_as_features')[
             'valueCurrent'
         ]
+        # parse string into list
+        pairs_as_features = json.loads(pairs_as_features)
 
         # technical_indicators_as_features
-        technical_indicators_as_features = experiment.get_parameters_summary(
+        technical_indicators_as_features: str = experiment.get_parameters_summary(
             'technical_indicators_as_features'
         )['valueCurrent']
+        # parse string into list
+        technical_indicators_as_features = json.loads(technical_indicators_as_features)
 
         # llm_model_name_news_signals
         llm_model_name_news_signals = experiment.get_parameters_summary(
@@ -256,4 +312,5 @@ if __name__ == '__main__':
         hopsworks_config=hopsworks_credentials,
     )
 
-    price_predictor.predict()
+    output = price_predictor.predict()
+    logger.info(f'Prediction output: {output}')

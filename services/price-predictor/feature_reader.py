@@ -306,9 +306,10 @@ class FeatureReader:
         logger.info('Getting latest features from the online feature store')
         keys_to_read = self._get_online_store_keys()
         logger.info(f'Keys to read: {keys_to_read}')
-        raw_features = self._feature_view.get_feature_vectors(entry=keys_to_read)
-
-        breakpoint()
+        raw_features = self._feature_view.get_feature_vectors(
+            entry=keys_to_read,
+            return_type='pandas',
+        )
 
         # horizontally stack the features for each pair
         # we want the outpu to be a daframe with (features, target)
@@ -331,6 +332,7 @@ class FeatureReader:
         Returns:
             A list of dictionaries with the keys we need to get features from the online store.
         """
+        # breakpoint()
         keys = []
         for pair in self.pairs_as_features:
             for candle_seconds in [self.candle_seconds]:
@@ -338,9 +340,8 @@ class FeatureReader:
                     {
                         'pair': pair,
                         'candle_seconds': candle_seconds,
-                        'news_signals_coin': pair.split('/')[
-                            0
-                        ],  # TODO: remove this hack once the query is updated
+                        # TODO: remove this hack once the query is updated
+                        'news_signals_coin': pair.split('/')[0],
                     }
                 )
         return keys
@@ -356,7 +357,7 @@ if __name__ == '__main__':
         feature_view_version=2,
         pair_to_predict='BTC/USD',
         candle_seconds=60,
-        pairs_as_features=['BTC/USD', 'ETH/USD', 'XRP/USD'],
+        pairs_as_features=['BTC/USD', 'ETH/USD'],
         technical_indicators_as_features=[
             'rsi_9',
             'rsi_14',
@@ -392,8 +393,9 @@ if __name__ == '__main__':
         # news_signals_feature_group_version=2,
     )
 
-    # training_data = feature_reader.get_training_data(days_back=90)
-    # print(training_data)
+    training_data = feature_reader.get_training_data(days_back=90)
+    print(training_data)
+    # breakpoint()
 
     latest_features = feature_reader.get_inference_features()
     print(latest_features)

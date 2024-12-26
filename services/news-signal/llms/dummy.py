@@ -37,6 +37,14 @@ class DummyNewsSignalExtractor(BaseNewsSignalExtractor):
                     'coin': 'ETH',
                     'signal': -1,
                 },
+                {
+                    'coin': 'XRP',
+                    'signal': 0,
+                },
+                {
+                    'coin': 'SOL',
+                    'signal': 0,
+                },
             ]
         else:
             raise NotImplementedError(
