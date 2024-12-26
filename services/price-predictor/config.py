@@ -88,6 +88,12 @@ class InferenceConfig(BaseSettings):
         description='The consumer group to use for the kafka consumer'
     )
 
+    # Elastic Search config
+    elasticsearch_url: str = Field(description='The URL of the Elastic Search instance')
+    elasticsearch_index: str = Field(
+        description='The index to write the predictions to'
+    )
+
 
 inference_config = InferenceConfig()
 

@@ -10,6 +10,7 @@
     - [x] Implement .predict() method to generate predictions.
     - [ ] Add custom Quix Streams sink to save predictions to Elastic Search
         - [x] Spin up Elastic Search locally with docker compose. 
-        - [ ] Save predictions from our inference.py to Elastisearch
+        - [x] Save predictions from our inference.py to Elastisearch
+        - [ ] Dockerize.
 
 ## Questions

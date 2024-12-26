@@ -1,6 +1,7 @@
 from loguru import logger
 from price_predictor import PricePredictor
 from quixstreams import Application
+from sinks import ElasticSearchSink
 
 
 def run(
@@ -13,7 +14,7 @@ def run(
     # encapsulate the inference logic in its .predict() method
     price_predictor: PricePredictor,
     # where to save the predictions
-    elastic_search_sink,
+    elastic_search_sink: ElasticSearchSink,
 ):
     """
     Run the inference job as a Quix Streams application.
@@ -55,7 +56,7 @@ def run(
     sdf = sdf.update(lambda x: logger.info(x))
 
     # Save the predictions to Elastic Search sink
-    # sdf.sink(elastic_search_sink)
+    sdf.sink(elastic_search_sink)
 
     app.run(sdf)
 
@@ -84,11 +85,17 @@ if __name__ == '__main__':
         hopsworks_config=hopsworks_config,
     )
 
+    # Create the Elastic Search sink
+    elastic_search_sink = ElasticSearchSink(
+        elasticsearch_url=config.elasticsearch_url,
+        index_name=config.elasticsearch_index,
+    )
+
     run(
         kafka_broker_address=config.kafka_broker_address,
         kafka_input_topic=config.kafka_input_topic,
         kafka_consumer_group=config.kafka_consumer_group,
         candle_seconds=config.candle_seconds,
         price_predictor=price_predictor,
-        elastic_search_sink=None,
+        elastic_search_sink=elastic_search_sink,
     )
