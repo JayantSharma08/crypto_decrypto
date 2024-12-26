@@ -61,7 +61,7 @@ def run(
     app.run(sdf)
 
 
-if __name__ == '__main__':
+def main():
     from config import (
         comet_ml_credentials as comet_config,
     )
@@ -99,3 +99,7 @@ if __name__ == '__main__':
         price_predictor=price_predictor,
         elastic_search_sink=elastic_search_sink,
     )
+
+
+if __name__ == '__main__':
+    main()

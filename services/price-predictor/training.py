@@ -219,7 +219,7 @@ def train(
     logger.info('Training job done!')
 
 
-if __name__ == '__main__':
+def main():
     from config import (
         comet_ml_credentials,
         hopsworks_credentials,
@@ -244,3 +244,7 @@ if __name__ == '__main__':
         hyperparameter_tuning_n_splits=training_config.hyperparameter_tuning_n_splits,
         model_status=training_config.model_status,
     )
+
+
+if __name__ == '__main__':
+    main()
