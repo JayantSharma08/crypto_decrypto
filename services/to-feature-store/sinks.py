@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 import hopsworks
+from hsfs.feature import Feature
 import pandas as pd
 
 # from hopsworks.exceptions import FeatureStoreException
@@ -28,13 +29,48 @@ class HopsworksFeatureStoreSink(BatchingSink):
         """
         self.feature_group_name = feature_group_name
         self.feature_group_version = feature_group_version
-        self.materialization_interval_minutes = (
-            feature_group_materialization_interval_minutes
-        )
+        self.materialization_interval_minutes = feature_group_materialization_interval_minutes
 
         # Establish a connection to the Hopsworks Feature Store
         project = hopsworks.login(project=project_name, api_key_value=api_key)
         self._fs = project.get_feature_store()
+                # Define the schema for the feature group
+        feature_group_schema = [
+            Feature(name='pair', type='string'),
+            Feature(name='timestamp_ms', type='bigint'),
+            Feature(name='open', type='double'),
+            Feature(name='high', type='double'),
+            Feature(name='low', type='double'),
+            Feature(name='close', type='double'),
+            Feature(name='volume', type='double'),
+            Feature(name='window_start_ms', type='bigint'),
+            Feature(name='window_end_ms', type='bigint'),
+            Feature(name='candle_seconds', type='bigint'),
+            Feature(name='rsi_9', type='double'),
+            Feature(name='rsi_14', type='double'),
+            Feature(name='rsi_21', type='double'),
+            Feature(name='macd', type='double'),
+            Feature(name='macd_signal', type='double'),
+            Feature(name='macd_hist', type='double'),
+            Feature(name='bbands_upper', type='double'),
+            Feature(name='bbands_middle', type='double'),
+            Feature(name='bbands_lower', type='double'),
+            Feature(name='stochrsi_fastk', type='double'),
+            Feature(name='stochrsi_fastd', type='double'),
+            Feature(name='adx', type='double'),
+            Feature(name='volume_ema', type='double'),
+            Feature(name='ichimoku_conv', type='double'),
+            Feature(name='ichimoku_base', type='double'),
+            Feature(name='ichimoku_span_a', type='double'),
+            Feature(name='ichimoku_span_b', type='double'),
+            Feature(name='mfi', type='double'),
+            Feature(name='atr', type='double'),
+            Feature(name='price_roc', type='double'),
+            Feature(name='sma_7', type='double'),
+            Feature(name='sma_14', type='double'),
+            Feature(name='sma_21', type='double'),
+            Feature(name='coin', type='string')
+        ]
 
         # Get the feature group
         self._feature_group = self._fs.get_or_create_feature_group(
@@ -43,6 +79,8 @@ class HopsworksFeatureStoreSink(BatchingSink):
             primary_key=feature_group_primary_keys,
             event_time=feature_group_event_time,
             online_enabled=True,
+            description="Feature group for storing technical indicators",
+            features=feature_group_schema
         )
 
         # set the materialization interval
@@ -62,6 +100,7 @@ class HopsworksFeatureStoreSink(BatchingSink):
         # Transform the batch into a pandas DataFrame
         data = [item.value for item in batch]
         data = pd.DataFrame(data)
+        data = data.fillna(0) 
 
         self._feature_group.insert(data)
 

@@ -85,6 +85,9 @@ def main(
         auto_offset_reset='latest' if data_source == 'live' else 'earliest',
     )
 
+    # To clear the state store to avoid the InvalidStoreChangeLogOffset
+    app.clear_state()
+
     # Define the input and output topics
     input_topic = app.topic(
         name=kafka_input_topic,

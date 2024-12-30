@@ -95,6 +95,9 @@ def compute_indicators(
     indicators['sma_14'] = stream.SMA(close, timeperiod=14)
     indicators['sma_21'] = stream.SMA(close, timeperiod=21)
 
+    # Round all indicators to 4 decimal places
+    indicators = {key: round(value, 4) for key, value in indicators.items()}
+
     # we want to emit a message with the latest candle and the indicators we just computed
     final_message = {
         **candle,
